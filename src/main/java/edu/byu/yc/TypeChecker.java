@@ -103,6 +103,32 @@ public class TypeChecker {
         return p.createAST(null);
     }
 
+    /*
+    *
+     public static Set<String> getElseIfStatementViolations(ASTNode node) {
+        logger.debug("getElseIfStatementViolations ()");
+        final IfStatementVisitor v = new IfStatementVisitor();
+        node.accept(v);
+        return v.getAllViolations();
+    }
+
+    public static Set<String> getSwitchStatementViolations(ASTNode node) {
+        logger.debug("getSwitchStatementViolations() Called");
+        final SwitchStatementVisitor v = new SwitchStatementVisitor();
+        node.accept(v);
+        return v.getUnqualifiedClassNames();
+    }
+
+    *
+    * */
+
+    public static Set<String> getUnqualifiedClassNames(ASTNode node) {
+        logger.debug("getUnqualifiedClassNames ()");
+        final QualifiedClassVisitor v = new QualifiedClassVisitor();
+        node.accept(v);
+        return v.getUnqualifiedClassNames();
+    }
+
     /**
      * Get the names of every identifier whose letters are all capitalized in node.
      * 
@@ -121,6 +147,11 @@ public class TypeChecker {
         Set<String> ac = getAllCaps(node);
         for (String c : ac) {
             logger.error("Found a name that is all caps: {}", c);
+        }
+
+        Set<String> violations = getUnqualifiedClassNames(node);
+        for (String v : violations) {
+            logger.error("Else if clause missing closing else clause:\n {}", v);
         }
     }
 }
