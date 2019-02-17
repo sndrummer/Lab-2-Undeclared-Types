@@ -19,6 +19,10 @@ public class ASTUtilities {
 
     private static Logger logger = LoggerFactory.getLogger(ASTUtilities.class);
 
+    /**
+     * Log the structuralProperties of the node
+     * @param node ASTNode
+     */
     public static void logProperties(ASTNode node) {
         List list = node.structuralPropertiesForType();
         for (int i = 0; i < list.size(); i++) {
@@ -27,6 +31,12 @@ public class ASTUtilities {
         }
     }
 
+    /**
+     * Log the children of the ASTNode with the propId given
+     *
+     * @param node ASTNode of which you find the children with the propertyId specified
+     * @param propId the property id used to find the children of the node of the same propId
+     */
     public static void logChildren(ASTNode node, int propId) {
         Object[] children = getChildNodes(node, propId);
         logger.debug("Children count {}", children.length);
@@ -35,6 +45,12 @@ public class ASTUtilities {
         }
     }
 
+    /**
+     * Method that returns an array of childNodes of the ASTNode with the given propertyId
+     *
+     * @param node ASTNode of which you find the children with the propertyId specified
+     * @param propId the property id used to find the children of the node of the same propId
+     */
     public static Object[] getChildNodes(ASTNode node, int propId) {
         List list = node.structuralPropertiesForType();
         Object child = node.getStructuralProperty((StructuralPropertyDescriptor) list.get(propId));

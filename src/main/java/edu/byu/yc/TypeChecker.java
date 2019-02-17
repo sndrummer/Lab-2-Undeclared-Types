@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +16,9 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import edu.byu.yc.visitors.QualifiedClassVisitor;
+import edu.byu.yc.visitors.TypeVisitor;
 
 /**
  * 
@@ -103,30 +108,22 @@ public class TypeChecker {
         return p.createAST(null);
     }
 
-    /*
-    *
-     public static Set<String> getElseIfStatementViolations(ASTNode node) {
-        logger.debug("getElseIfStatementViolations ()");
-        final IfStatementVisitor v = new IfStatementVisitor();
-        node.accept(v);
-        return v.getAllViolations();
-    }
 
-    public static Set<String> getSwitchStatementViolations(ASTNode node) {
-        logger.debug("getSwitchStatementViolations() Called");
-        final SwitchStatementVisitor v = new SwitchStatementVisitor();
-        node.accept(v);
-        return v.getUnqualifiedClassNames();
-    }
+    public static Set<String> getTypeViolations(ASTNode node) {
+        final QualifiedClassVisitor qualifiedClassVisitor = new QualifiedClassVisitor();
+        node.accept(qualifiedClassVisitor);
 
-    *
-    * */
+        List<ASTClassValidator> classValidators = qualifiedClassVisitor.getClassValidators();
 
-    public static Set<String> getUnqualifiedClassNames(ASTNode node) {
-        logger.debug("getUnqualifiedClassNames ()");
-        final QualifiedClassVisitor v = new QualifiedClassVisitor();
-        node.accept(v);
-        return v.getUnqualifiedClassNames();
+        //Resolve declarations in each class
+        Set<String> violations = new HashSet<>();
+        for (ASTClassValidator validator : classValidators) {
+            TypeVisitor tv = new TypeVisitor(validator);
+            ASTNode classNode = validator.getRootNode();
+            classNode.accept(tv);
+            violations.addAll(tv.getViolations());
+        }
+        return violations;
     }
 
     /**
@@ -144,14 +141,16 @@ public class TypeChecker {
     public static void main(String[] args) {
         ASTNode node = parseAll(expand(args));
 
+
         Set<String> ac = getAllCaps(node);
         for (String c : ac) {
             logger.error("Found a name that is all caps: {}", c);
         }
 
-        Set<String> violations = getUnqualifiedClassNames(node);
+        Set<String> violations = getTypeViolations(node);
         for (String v : violations) {
-            logger.error("Else if clause missing closing else clause:\n {}", v);
+            logger.error("Invalid type used {}", v);
         }
+
     }
 }
